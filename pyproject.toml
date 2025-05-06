@@ -1,0 +1,48 @@
+[project]
+name = "seisan-mcp"
+version = "0.1.0"
+description = "勤務表から交通費精算ファイルを出力するアプリケーション"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "jinja2>=3.1.6",
+    "mcp[cli]>=1.6.0",
+    "pytz==2025.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest-datadir>=1.6.1",
+    "ruff>=0.11.6",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.26.0",
+    "pytest-tornasync>=0.6.0.post2",
+    "pytest-trio>=0.8.0",
+    "pytest-twisted>=1.14.3",
+    "python-dateutil==2.9.0.post0",
+    "twisted>=24.11.0",
+    "pytest-cov>=6.1.1",
+    "mypy>=1.15.0",
+]
+
+[tool.ruff]
+# Ruffの設定
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort
+    "UP", # pyupgrade
+    "ANN", # flake8-annotations (型ヒント)
+]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Ignore unused imports in __init__.py files
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = ["tests",]

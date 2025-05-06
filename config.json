@@ -1,0 +1,31 @@
+{
+  "homeCharge": {
+    "amount": 250
+  },
+  "transportation": {
+    "company": {
+      "departure": "東京",
+      "destination": "舞浜",
+      "amount": 1086
+    },
+    "customer": {
+      "default": {
+        "departure": "東京",
+        "destination": "品川",
+        "amount": 550
+      },
+      "locations": {
+        "板橋": {
+          "departure": "東京",
+          "destination": "板橋",
+          "amount": 280
+        },
+        "赤羽": {
+          "departure": "東京",
+          "destination": "赤羽",
+          "amount": 550
+        }
+      }
+    }
+  }
+}

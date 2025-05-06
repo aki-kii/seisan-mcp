@@ -1,0 +1,31 @@
+{
+  "homeCharge": {
+    "amount": 250
+  },
+  "transportation": {
+    "company": {
+      "departure": "東京",
+      "destination": "目黒",
+      "amount": 208
+    },
+    "customer": {
+      "default": {
+        "departure": "東京",
+        "destination": "品川",
+        "amount": 178
+      },
+      "locations": {
+        "渋谷": {
+          "departure": "東京",
+          "destination": "渋谷",
+          "amount": 209
+        },
+        "横浜": {
+          "departure": "東京",
+          "destination": "横浜",
+          "amount": 438
+        }
+      }
+    }
+  }
+}
