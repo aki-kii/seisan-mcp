@@ -5,6 +5,7 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, Template
 
+from database import get_home_charge
 from models import (
     AttendanceRecords,
     Expense,
@@ -125,12 +126,13 @@ def _create_onsite_expenses(
 def _create_home_charge_expense(work_date: date, config: dict[str, Any]) -> ExpenseRecords:
     """在宅チャージのデータを作成"""
     expenses: ExpenseRecords = ExpenseRecords()
+    home_charge = get_home_charge()
     expense_data = {
         "日付": work_date,
         "出発": "",
         "到着": "",
         "往復": "--",
-        "金額/Km": config["homeCharge"]["amount"],
+        "金額/Km": home_charge.amount,
         "客先請求": "なし",
         "申請理由": "在宅チャージ",
         "交通機関": "",

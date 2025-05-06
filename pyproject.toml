@@ -8,6 +8,7 @@ dependencies = [
     "jinja2>=3.1.6",
     "mcp[cli]>=1.6.0",
     "pytz==2025.2",
+    "sqlalchemy>=2.0.40",
 ]
 
 [dependency-groups]
