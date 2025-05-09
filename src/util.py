@@ -1,11 +1,16 @@
 import json
 import os
+from collections.abc import Callable, Sequence
 from datetime import date
-from typing import Any
+from typing import Any, TypeVar
 
 from jinja2 import Environment, FileSystemLoader, Template
 
-from database import get_home_charge
+from database import (
+    CompanyTransportation,
+    CustomerTransportation,
+    HomeCharge,
+)
 from models import (
     AttendanceRecords,
     Expense,
@@ -13,6 +18,8 @@ from models import (
     WorkPattern,
     WorkType,
 )
+
+T = TypeVar("T", CompanyTransportation, CustomerTransportation)
 
 
 def load_config(config_path: str) -> dict[str, Any]:
@@ -73,21 +80,34 @@ def process_attendance_data(
     return expenses
 
 
-def _find_location(memo: str | None, config: dict[str, Any]) -> dict[str, Any]:
-    """メモ欄から顧客識別子を特定し、対応する交通費情報を返す"""
+def _find_location(
+    memo: str | None,
+    get_default: Callable[[], T],
+    get_all: Callable[[], Sequence[T]],
+) -> T:
+    """メモ欄から自社識別子を特定し、対応する交通費情報を返す
+    ただし、メモ欄と最長一致した勤務先とする
+    """
     if not memo:
-        return config["transportation"]["customer"]["default"]
+        return get_default()
 
-    # 最長一致ルールを適用
-    matched_location: dict[str, Any] | None = None
+    transportations = get_all()
+
+    if len(transportations) == 1:
+        return get_default()
+
+    matched_location = get_default()
     max_length: int = 0
 
-    for location_id, location_data in config["transportation"]["customer"]["locations"].items():
-        if location_id in memo and len(location_id) > max_length:
-            matched_location = location_data
-            max_length = len(location_id)
+    for transportation in transportations:
+        length = len(transportation.location)
+        if not (transportation.location in memo and length > max_length):
+            continue
 
-    return matched_location if matched_location else config["transportation"]["customer"]["default"]
+        matched_location = transportation
+        max_length = length
+
+    return matched_location
 
 
 def _create_onsite_expenses(
@@ -101,18 +121,26 @@ def _create_onsite_expenses(
 
         match work_type:
             case WorkType.CUSTOMER_ONSITE:
-                location_config = _find_location(attendance.memo, config)
+                transportation = _find_location(
+                    attendance.memo,
+                    CustomerTransportation.get_default,
+                    CustomerTransportation.get_all,
+                )
                 reason = "顧客先交通費"
             case WorkType.INHOUSE_ONSITE:
-                location_config = config["transportation"]["company"]
+                transportation = _find_location(
+                    attendance.memo,
+                    CompanyTransportation.get_default,
+                    CompanyTransportation.get_all,
+                )
                 reason = "通勤費(通常勤務地)"
 
         expense_data = {
             "日付": work_date,
-            "出発": location_config["departure"],
-            "到着": location_config["destination"],
+            "出発": transportation.departure,
+            "到着": transportation.destination,
             "往復": "往復",
-            "金額/Km": location_config["amount"],
+            "金額/Km": transportation.amount,
             "客先請求": "なし",
             "申請理由": reason,
             "交通機関": "電車",
@@ -126,7 +154,7 @@ def _create_onsite_expenses(
 def _create_home_charge_expense(work_date: date, config: dict[str, Any]) -> ExpenseRecords:
     """在宅チャージのデータを作成"""
     expenses: ExpenseRecords = ExpenseRecords()
-    home_charge = get_home_charge()
+    home_charge = HomeCharge.get_home_charge()
     expense_data = {
         "日付": work_date,
         "出発": "",
